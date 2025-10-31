@@ -67,7 +67,7 @@ def run_scenario(arrival_rate, green_time, yellow_time, red_time, service_time):
     env = simpy.Environment()
     env.process(vehicle_arrival(env, queue, arrival_rate))
     env.process(traffic_light_cycle(env, queue, green_time, yellow_time, red_time, service_time))
-    env.run(until=900)  # Run the simulation for 900 seconds.
+    env.run(until=3600)  # Run the simulation for 3600 seconds.
     
     # Calculate average wait time and max queue length.
     if wait_times:
