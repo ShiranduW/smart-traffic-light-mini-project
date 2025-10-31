@@ -81,7 +81,7 @@ def run_scenario(arrival_rate, green_time, yellow_time, red_time, service_time):
     
     # Print results.
     print("=" * 40)
-    print(f"Scenario with arrival rate {arrival_rate}, service time {service_time}")
+    print(f"Scenario with arrival rate {arrival_rate}, Green time {green_time}, and , service time {service_time}")
     print("Average wait time:", avg_wait)
     print("Max queue length:", max_queue)
     print("Vehicles passed:", vehicles_passed)
@@ -91,3 +91,4 @@ def run_scenario(arrival_rate, green_time, yellow_time, red_time, service_time):
 run_scenario(10, 30, 3, 50, 1.5)      # Baseline traffic
 run_scenario(20, 30, 3, 50, 1.5)      # Heavy traffic
 run_scenario(10, 30, 3, 50, 1)        # Faster service
+run_scenario(10, 40, 3, 50, 1.5)  # Improved Service with increased green light time
