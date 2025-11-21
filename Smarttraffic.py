@@ -116,3 +116,4 @@ run_scenario(10, 30, 3, 50, 1.5)      # Baseline traffic
 run_scenario(20, 30, 3, 50, 1.5)      # Heavy traffic
 run_scenario(10, 30, 3, 50, 1)        # Faster service
 run_scenario(10, 40, 3, 50, 1.5)  # Improved signal timing
+run_scenario(5, 30, 3, 50, 1.5)   #Low Traffic Scenario
