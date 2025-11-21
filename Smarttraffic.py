@@ -1,5 +1,6 @@
 import simpy;
 import random;
+import pandas as pd; # For exporting simulation results to CSV files.
 
 # Create the environment.
 env = simpy.Environment()
@@ -57,6 +58,25 @@ def traffic_light_cycle(env, queue, green_time, yellow_time, red_time, service_t
 
         print(f"Green light OFF at {env.now} seconds")
         
+# Define a function to export simulation results to CSV files.
+def export_results(wait_times, queue_lengths, vehicles_passed, filename_prefix):
+    max_len = max(len(wait_times), len(queue_lengths))
+    wait_times_padded = wait_times + [None] * (max_len - len(wait_times))
+    queue_lengths_padded = queue_lengths + [None] * (max_len - len(queue_lengths))
+
+    df = pd.DataFrame({
+        'WaitTime': wait_times_padded,
+        'QueueLength': queue_lengths_padded
+    })
+    df.to_csv(f'{filename_prefix}_simulation_data.csv', index=False)
+
+    summary = {
+        'AverageWaitTime': sum(wait_times) / len(wait_times) if wait_times else 0,
+        'MaxQueueLength': max(queue_lengths) if queue_lengths else 0,
+        'TotalVehiclesPassed': vehicles_passed
+    }
+    pd.DataFrame([summary]).to_csv(f'{filename_prefix}_summary.csv', index=False)
+        
 # Run the simulation for a given scenario separately.
 def run_scenario(arrival_rate, green_time, yellow_time, red_time, service_time):
     global wait_times, vehicles_passed, queue_lengths, queue
@@ -67,7 +87,7 @@ def run_scenario(arrival_rate, green_time, yellow_time, red_time, service_time):
     env = simpy.Environment()
     env.process(vehicle_arrival(env, queue, arrival_rate))
     env.process(traffic_light_cycle(env, queue, green_time, yellow_time, red_time, service_time))
-    env.run(until=3600)  # Run the simulation for 3600 seconds.
+    env.run(until=900)  # Run the simulation for 3600 seconds.
     
     # Calculate average wait time and max queue length.
     if wait_times:
@@ -86,9 +106,13 @@ def run_scenario(arrival_rate, green_time, yellow_time, red_time, service_time):
     print("Max queue length:", max_queue)
     print("Vehicles passed:", vehicles_passed)
     print("=" * 40)
+    
+    # Export results to CSV files with scenario details in filename.
+    filename_prefix = f'arr{arrival_rate}_green{green_time}_serv{service_time}'
+    export_results(wait_times, queue_lengths, vehicles_passed, filename_prefix)
 
 # Run three scenarios separately.
 run_scenario(10, 30, 3, 50, 1.5)      # Baseline traffic
 run_scenario(20, 30, 3, 50, 1.5)      # Heavy traffic
 run_scenario(10, 30, 3, 50, 1)        # Faster service
-run_scenario(10, 40, 3, 50, 1.5)  # Improved Service with increased green light time
+run_scenario(10, 40, 3, 50, 1.5)  # Improved signal timing
