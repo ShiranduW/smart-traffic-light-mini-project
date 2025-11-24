@@ -78,7 +78,8 @@ def export_results(wait_times, queue_lengths, vehicles_passed, filename_prefix):
     pd.DataFrame([summary]).to_csv(f'{filename_prefix}_summary.csv', index=False)
         
 # Run the simulation for a given scenario separately.
-def run_scenario(arrival_rate, green_time, yellow_time, red_time, service_time):
+def run_scenario(arrival_rate, green_time, yellow_time, red_time, service_time, end_time=900):
+    # global is for sharing variables between functions.
     global wait_times, vehicles_passed, queue_lengths, queue
     wait_times, vehicles_passed, queue_lengths = [], 0, []
     queue = []
@@ -87,7 +88,8 @@ def run_scenario(arrival_rate, green_time, yellow_time, red_time, service_time):
     env = simpy.Environment()
     env.process(vehicle_arrival(env, queue, arrival_rate))
     env.process(traffic_light_cycle(env, queue, green_time, yellow_time, red_time, service_time))
-    env.run(until=900)  # Run the simulation for 3600 seconds.
+    
+    env.run(until=end_time) # Run the simulation for 900 seconds.
     
     # Calculate average wait time and max queue length.
     if wait_times:
@@ -99,21 +101,33 @@ def run_scenario(arrival_rate, green_time, yellow_time, red_time, service_time):
     else:
         max_queue = 0
     
-    # Print results.
+    # print scenario.
     print("=" * 40)
     print(f"Scenario with arrival rate {arrival_rate}, Green time {green_time}, and , service time {service_time}")
-    print("Average wait time:", avg_wait)
-    print("Max queue length:", max_queue)
-    print("Vehicles passed:", vehicles_passed)
     print("=" * 40)
     
     # Export results to CSV files with scenario details in filename.
     filename_prefix = f'arr{arrival_rate}_green{green_time}_serv{service_time}'
     export_results(wait_times, queue_lengths, vehicles_passed, filename_prefix)
+    
+    return avg_wait, max_queue, vehicles_passed
 
-# Run three scenarios separately.
-run_scenario(10, 30, 3, 50, 1.5)      # Baseline traffic
-run_scenario(20, 30, 3, 50, 1.5)      # Heavy traffic
-run_scenario(10, 30, 3, 50, 1)        # Faster service
-run_scenario(10, 40, 3, 50, 1.5)  # Improved signal timing
-run_scenario(5, 30, 3, 50, 1.5)   #Low Traffic Scenario
+# Run multiple repetitions of the same scenario.
+def run_multiple_repetitions(arrival_rate, green_time, yellow_time, red_time, service_time, runs=5, warmup_duration=100, measurement_duration=900):
+    total_avg_wait, total_max_queue, total_vehicles = 0, 0, 0
+
+    for i in range(runs):
+        # Run simulation with warm-up: just run environment for warmup_duration to let system stabilize without collecting data.
+        # Then run measurement period from warmup_duration to warmup_duration + measurement_duration.
+        avg_wait, max_queue, vehicles_passed = run_scenario(arrival_rate, green_time, yellow_time, red_time, service_time, 
+        end_time = warmup_duration + measurement_duration)                                                 
+        total_avg_wait += avg_wait
+        total_max_queue = max(total_max_queue, max_queue) 
+        total_vehicles += vehicles_passed
+    
+# Run five scenarios separately.
+run_multiple_repetitions(10, 30, 3, 50, 1.5, runs=5) # Baseline traffic scenario
+run_multiple_repetitions(20, 30, 3, 50, 1.5, runs=5) # Heavy traffic scenario
+run_multiple_repetitions(5, 30, 3, 50, 1.5, runs=5)  # Low Traffic Scenario
+run_multiple_repetitions(10, 30, 3, 50, 1, runs=5)   # Faster servicec scenario
+run_multiple_repetitions(10, 40, 3, 50, 1.5, runs=5) # Improved signal timing scenario
