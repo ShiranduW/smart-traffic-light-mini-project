@@ -1,6 +1,7 @@
 import simpy;
 import random;
 import pandas as pd; # For exporting simulation results to CSV files.
+import matplotlib.pyplot as plt
 
 # Create the environment.
 env = simpy.Environment()
@@ -131,3 +132,37 @@ run_multiple_repetitions(20, 30, 3, 50, 1.5, runs=5) # Heavy traffic scenario
 run_multiple_repetitions(5, 30, 3, 50, 1.5, runs=5)  # Low Traffic Scenario
 run_multiple_repetitions(10, 30, 3, 50, 1, runs=5)   # Faster servicec scenario
 run_multiple_repetitions(10, 40, 3, 50, 1.5, runs=5) # Improved signal timing scenario
+
+
+# Show results as bar chart.
+scenarios = ['Baseline Traffic', 'Heavy Traffic', 'Low Traffic', 'Faster Service', 'Improved Signal \nTiming']
+average_wait = [25.53, 29.03, 26.82, 24.75, 26.86]
+max_queue = [9, 12, 8, 10, 9]
+vehicles_passed = [88, 48, 182, 99, 105]
+
+# Example: Plot Average Wait Time
+plt.figure(figsize=(8,5))
+plt.bar(scenarios, average_wait, color='skyblue')
+plt.title('Average Wait Time by Scenario (seconds)')
+plt.xlabel('Scenario')
+plt.ylabel('Average Wait Time (s)')
+plt.ylim(0, max(average_wait) + 5)
+plt.show()
+
+# Example: Plot max queue length
+plt.figure(figsize=(8,5))
+plt.bar(scenarios, max_queue, color='orange')
+plt.title('Maximum Queue Length by Scenario')
+plt.xlabel('Scenario')
+plt.ylabel('Maximum Queue Length (vehicles)')
+plt.ylim(0, max(max_queue) + 3) 
+plt.show()
+
+# Example: Plot throughput
+plt.figure(figsize=(8,5))
+plt.bar(scenarios, vehicles_passed, color='green')
+plt.title('Vehicles Passed (Throughput) by Scenario')
+plt.xlabel('Scenario')
+plt.ylabel('Number of Vehicles Passed')
+plt.ylim(0, max(vehicles_passed) + 20) 
+plt.show()
